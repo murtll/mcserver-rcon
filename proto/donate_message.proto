@@ -1,0 +1,10 @@
+syntax = "proto3";
+package pb;
+
+option go_package = "pkg/pb";
+
+message DonateMessage {
+  int32  DonateItemId = 1;
+  string DonaterUsername = 2;
+  int32  Amount = 3;
+}
