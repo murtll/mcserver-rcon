@@ -19,5 +19,5 @@ var AmqpUrl = fmt.Sprintf("amqp://%s:%s@%s:%d",
 
 var AmqpQueueName = util.GetStrOrDefault("AMQP_QUEUE_NAME", "donates")
 
-var RconUrl = fmt.Sprintf("%s:%d", util.GetStrOrDefault("RCON_HOST", "localhost"), util.GetIntOrDefault("RCON_PORT", 25575))
+var RconUrl = fmt.Sprintf("%s:%d", util.GetStrOrDefault("RCON_HOST", "play.mcbrawl.ru"), util.GetIntOrDefault("RCON_PORT", 25575))
 var RconPass = util.GetStrOrDefault("RCON_PASS", "test")

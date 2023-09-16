@@ -43,7 +43,7 @@ func NewMessageRepository(ch *amqp.Channel, qname string) (*MessageRepository, e
 }
 
 func (mr *MessageRepository) ConsumeDonates() (<-chan *entities.DonateDelivery, error) {
-	msgs, err := mr.ch.Consume(
+	mq, err := mr.ch.Consume(
 		mr.queue.Name, // queue
 		"",            // consumer
 		false,         // auto-ack
@@ -56,19 +56,21 @@ func (mr *MessageRepository) ConsumeDonates() (<-chan *entities.DonateDelivery, 
 		return nil, err
 	}
 
-	donates := make(chan *entities.DonateDelivery)
+	dq := make(chan *entities.DonateDelivery)
 
-	go func() {
+	go func(msgs <-chan amqp.Delivery, donates chan<- *entities.DonateDelivery) {
 		defer mr.ch.Close()
 
 		for m := range msgs {
-			var donate *pb.DonateMessage
+			log.Println("got message from queue")
+			donate := &pb.DonateMessage{}
 			err := proto.Unmarshal(m.Body, donate)
 			if err != nil {
 				log.Println("error unmarshalling message, rejecting...")
 				m.Reject(false)
 				continue
 			}
+			log.Printf("message: %s", donate)
 
 			dd := &entities.DonateDelivery{
 				DonateMessage: donate,
@@ -77,9 +79,9 @@ func (mr *MessageRepository) ConsumeDonates() (<-chan *entities.DonateDelivery, 
 
 			donates <- dd
 		}
-	}()
+	}(mq, dq)
 
-	return donates, nil
+	return dq, nil
 }
 
 func (mr *MessageRepository) Ack(tag uint64) {

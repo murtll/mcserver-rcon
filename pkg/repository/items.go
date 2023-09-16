@@ -3,6 +3,7 @@ package repository
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -53,7 +54,7 @@ func (ir *ItemRepository) GetItem(id int) (*entities.Item, error) {
 	triedAuth := false
 
 makerequest:
-	res, err := http.Get(requestUrl.String())
+	res, err := ir.c.Get(requestUrl.String())
 	if err != nil {
 		return nil, err
 	}
@@ -68,14 +69,9 @@ makerequest:
 	}
 
 	item := &entities.Item{}
-	var tmp []byte
-	_, err = res.Body.Read(tmp)
+	err = json.NewDecoder(res.Body).Decode(item)
 	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(tmp, &item)
-	if err != nil {
+		log.Println("error unmarshalling item")
 		return nil, err
 	}
 
@@ -84,13 +80,13 @@ makerequest:
 
 func (ir *ItemRepository) Authorize() error {
 	requestUrl := ir.ApiUrl.JoinPath("admin").JoinPath("login")
-	req, err := http.NewRequest("GET", requestUrl.String(), nil)
+	req, err := http.NewRequest("POST", requestUrl.String(), nil)
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("authorization", ir.ApiKey)
-	res, err := http.DefaultClient.Do(req)
+	res, err := ir.c.Do(req)
 	if err != nil {
 		return err
 	}

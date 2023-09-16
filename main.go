@@ -35,6 +35,9 @@ func main() {
 	}
 
 	rcon, err := rcon.NewMCConn(config.RconUrl, config.RconPass)
+	if err != nil {
+		panic(err)
+	}
 	defer rcon.Close()
 
 	ms := service.NewMessageService(mr, ir, rcon)
